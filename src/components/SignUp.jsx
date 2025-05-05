@@ -1,18 +1,10 @@
 import { useForm } from "react-hook-form";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { loginContext } from "../Context/LoginContext";
 
 const SignUp = () => {
-  const [isSignUp, setIsSignUp] = useState(true);
-  const [isLogIn, setIsLogIn] = useState(false);
-
-  const loginHandler = () => {
-    setIsSignUp(false);
-    setIsLogIn(true);
-  };
-  const signUpHandler = () => {
-    setIsSignUp(true);
-    setIsLogIn(false);
-  };
+  const [mode, setMode] = useState("signup");
+  const { setUsername, setShowProfile } = useContext(loginContext);
 
   const {
     register,
@@ -20,8 +12,48 @@ const SignUp = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => console.log(data);
-  const passwordRegex = /^(?=. * [A-Z])(?=. * \d)(?=. * \W_ ).{6,}$/;
+  const onSubmit = (data) => {
+    const email = data.email;
+
+    // const storedUser = JSON.parse(localStorage.getItem("user"));
+
+    if (mode === "signup") {
+      const randomNumber = Math.floor(10000 + Math.random() * 9000);
+      const generatedUsername = `${email.split("@")[0]}${randomNumber}`;
+
+      const existingUsers = JSON.parse(localStorage.getItem("user")) || [];
+      const newUser = {
+        email: data.email,
+        username: generatedUsername,
+        password: data.password,
+      };
+      const updatedUsers = [...existingUsers, newUser];
+      localStorage.setItem("user", JSON.stringify(updatedUsers));
+
+      setShowProfile(true);
+      setUsername(generatedUsername); // after form submission
+      console.log(data);
+
+    }  
+  if( mode === "login"){
+      const storedUsers = JSON.parse(localStorage.getItem("user")) || [];
+      if (!Array.isArray(storedUsers)) {
+        console.error("Expected 'users' in localStorage to be an array, but got:", storedUsers);
+        return;
+      }
+      const matchedUser = storedUsers.find(
+        (user) =>
+          (user.email === data.loginId || user.generatedUsername === data.logInId) &&
+          user.password === data.password
+      );
+      if (matchedUser) {
+        setUsername(matchedUser.username);
+        setShowProfile(true);
+      }
+    }
+  };
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
 
   return (
     <div
@@ -32,177 +64,149 @@ const SignUp = () => {
       }}
     >
       <div className="bg-white/3 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-full max-w-md">
-        {isSignUp && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col text-gray-400"
-          >
-            <input
-              placeholder="First name"
-              {...register("firstName", {
-                required: "firstName is required",
-                maxlength: 80,
-              })}
-              className="border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-                <div  className="mb-2">{errors.firstName && <span>{errors.firstName.message}</span>}</div>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col text-gray-300 "
+        >
+          {mode === "signup" && (
+            <>
+              <h1 className="font-bold text-white mb-2">Create your account</h1>
+              <input
+                type="text"
+                name="Fullname"
+                placeholder="fullname"
+                className="border border-white rounded-lg p-2 placeholder-white  outline-none"
+                {...register("fullName", {
+                  required: "fullname is required",
+                  maxLength: 80,
+                })}
+              />
+              <div className="mb-2">
+                {" "}
+                {errors.fullName && <span>{errors.fullName.message}</span>}
+              </div>
 
-            <input
-              placeholder="Last name"
-              {...register("lastName", {
-                required: "lastName is required",
-                maxlength: 80,
-              })}
-              className="border border-white rounded-lg p-2 placeholder-white outline-none "
-            />
-              <div  className="mb-2"> {errors.lastName && <span>{errors.lastName.message}</span>}</div>
+              <input
+                type="email"
+                name="Email"
+                placeholder="email"
+                {...register("email", { required: "email is required" })}
+                className="border border-white rounded-lg p-2 placeholder-white outline-none"
+              />
+              <div className="mb-2">
+                {" "}
+                {errors.email && <span>{errors.email.message}</span>}
+              </div>
 
-            <input
-              type="email"
-              placeholder="Email"
-              {...register("email", {
-                required: "Email is required ",
-                pattern: {
-                  value: /^\S+@\S+$/i,
-                  message: "Invalid email",
-                },
-              })}
-              className="bg-none border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-               <div  className="mb-2"> {errors.email && <span>{errors.email.message}</span>}</div>
+              <input
+                type="tel"
+                name="mobile"
+                placeholder="phone number"
+                {...register("mobile", {
+                  required: "phone number is required",
+                })}
+                className="border border-white rounded-lg p-2 placeholder-white  mb-2  outline-none"
+              />
+              <div className="mb-2">
+                {" "}
+                {errors.mobile && <span>{errors.mobile.message}</span>}
+              </div>
 
-            <input
-              type="tel"
-              placeholder="Phone number"
-              {...register("mobile", {
-                required: "mobile number is required",
-                minlength: { value: 6, message: "min length is 6 digits" },
-                maxlength: { value: 12, message: "max lenght is 12 digits" },
-              })}
-              className="border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-               <div  className="mb-2"> {errors.mobile && <span>{errors.mobile.message}</span>}</div>
-
-            <select
-              {...register("title", { required: "title is required" })}
-              className="border border-white rounded-lg p-2 placeholder-white  outline-none"
-            >
-              <option value="">Select title</option>
-              <option value="Mr">Mr</option>
-              <option value="Mrs">Mrs</option>
-              <option value="Miss">Miss</option>
-              <option value="Dr">Dr</option>
-            </select>
-            <div  className="mb-2">  {errors.title && <span>{errors.title.message}</span>} </div>
-
-            {/* <div className="py-2">
-      <label className="" x>
-        <input
-          {...register("developer", {
-            required: "This field is required",
-          })}
-          type="radio"
-          value="Yes"
-        />
-        Yes
-      </label>
-      <label>
-        <input
-          {...register("developer", {
-            required: "This field is required",
-          })}
-          type="radio"
-          value="No"
-        />
-        No
-      </label>
-    </div> */}
-               <div  className="mb-2">{errors.developer && <span>{errors.developer.message}</span>}</div>
-
-            <input
-              type="password"
-              placeholder="Password"
-              {...register("password", {
-                required: "Password is required",
-                pattern: {
-                  value: passwordRegex,
-                  message:
-                    "Password must include atleast 1 capital , 1 number and 1 symbol",
-                },
-              })}
-              className="border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-                <div  className="mb-2">{errors.password && <span>{errors.password.message}</span>}</div>
-
-            <button
-              type="submit"
-              className="bg-gray-500 border-gray-500 rounded-lg p-2 placeholder-white  font-bold outline-none text-white"
-            >
-              Submit
-            </button>
-            <p>
-              You already have an account?{" "}
-              <span
-                className="text-white font-bold underline cursor-pointer"
-                onClick={loginHandler}
+              <select
+                {...register("title", { required: "title is required" })}
+                className="border border-white rounded-lg p-2 placeholder-white  mb-2 outline-none"
               >
-                login
-              </span>{" "}
-            </p>
-          </form>
-        )}
+                <option value="">Select title</option>
+                <option value="Mr">Mr</option>
+                <option value="Mrs">Mrs</option>
+                <option value="Miss">Miss</option>
+                <option value="Dr">Dr</option>
+              </select>
+              <div className="mb-2">
+                {" "}
+                {errors.title && <span>{errors.title.message}</span>}
+              </div>
+            </>
+          )}
 
-        {isLogIn && (
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col text-gray-400"
+          {mode === "login" && (
+            <>
+              <h1 className="font-bold text-white mb-2">
+                Log in into your account
+              </h1>
+              <input
+                type="text"
+                name="loginId"
+                placeholder="Email or username"
+                {...register("loginId", {
+                  required: "Email or username is required",
+                  validate: (value) => {
+                    // Basic check for email format or username format
+                    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+                    const isUsername = /^[a-zA-Z0-9]+[0-9]{4}$/.test(value);
+
+                    if (!isEmail && !isUsername) {
+                      return "Please enter a valid email or username";
+                    }
+                    return true;
+                  },
+                })}
+                className="border border-white rounded-lg p-2 placeholder-white mb-2 outline-none"
+              />
+            </>
+          )}
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            {...register("password", {
+              required: "Password is required",
+              pattern: {
+                value: passwordRegex,
+                message:
+                  "Password must include atleast 1 capital , 1 number and 1 symbol",
+              },
+            })}
+            className="border border-white rounded-lg p-2 placeholder-white  mb-2  outline-none"
+          />
+          <div className="mb-2">
+            {" "}
+            {errors.password && <span>{errors.password.message}</span>}
+          </div>
+
+          <button
+            type="submit"
+            className="bg-gray-500 border-gray-500 rounded-lg p-2 placeholder-white  mb-2 font-bold outline-none text-white "
           >
-            <input
-              type="email"
-              placeholder="Email"
-              {...register("email", {
-                required: "Email is required ",
-                pattern: {
-                  value: /^\S+@\S+$/i,
-                  message: "Invalid email",
-                },
-              })}
-              className="bg-none border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-           <div  className="mb-2">  {errors.email && <span>{errors.email.message}</span>}</div>
+            Submit
+          </button>
 
-            <input
-              type="password"
-              placeholder="Password"
-              {...register("password", {
-                required: "Password is required",
-                pattern: {
-                  value: passwordRegex,
-                  message:
-                    "Password must include atleast 1 capital , 1 number and 1 symbol",
-                },
-              })}
-              className="border border-white rounded-lg p-2 placeholder-white  outline-none"
-            />
-           <div className="mb-2"> {errors.password && <span>{errors.password.message}</span>}</div>
-
-            <button
-              type="submit"
-              className="bg-gray-500 border-gray-500 rounded-lg p-2 placeholder-white  font-bold outline-none text-white "
-            >
-              Submit
-            </button>
-            <p  className="mt-2 ">
-              You dont have an account?{" "}
-              <span
-                className="text-white font-bold underline cursor-pointer "
-                onClick={signUpHandler}
-              >
-                Sign Up
-              </span>{" "}
-            </p>
-          </form>
-        )}
+          {/* Switch Between Modes */}
+          <p className="mt-2">
+            {mode === "signup" ? (
+              <>
+                You already have an account?{" "}
+                <span
+                  onClick={() => setMode("login")}
+                  className="text-white font-bold underline cursor-pointer"
+                >
+                  Login
+                </span>
+              </>
+            ) : (
+              <>
+                Don’t have an account?{" "}
+                <span
+                  onClick={() => setMode("signup")}
+                  className="text-white font-bold underline cursor-pointer"
+                >
+                  Sign Up
+                </span>
+              </>
+            )}
+          </p>
+        </form>
       </div>
     </div>
   );
