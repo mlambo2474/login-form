@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
 import React, { useContext, useState } from "react";
 import { loginContext } from "../Context/LoginContext";
+import { FaRegUser } from "react-icons/fa";
+
 
 const SignUp = () => {
   const [mode, setMode] = useState("signup");
@@ -134,6 +136,8 @@ const SignUp = () => {
 
           {mode === "login" && (
             <>
+               <div  className="flex justify-center"> <FaRegUser className="w-12 h-12 "/></div>   
+
               <h1 className="font-bold text-white mb-2">
                 Log in
               </h1>
