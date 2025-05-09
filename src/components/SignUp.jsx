@@ -33,17 +33,20 @@ const SignUp = () => {
       setShowProfile(true);
       setUsername(generatedUsername); // after form submission
       console.log(data);
-
-    }  
-  if( mode === "login"){
+    }
+    if (mode === "login") {
       const storedUsers = JSON.parse(localStorage.getItem("user")) || [];
       if (!Array.isArray(storedUsers)) {
-        console.error("Expected 'users' in localStorage to be an array, but got:", storedUsers);
+        console.error(
+          "Expected 'users' in localStorage to be an array, but got:",
+          storedUsers
+        );
         return;
       }
       const matchedUser = storedUsers.find(
         (user) =>
-          (user.email === data.loginId || user.generatedUsername === data.logInId) &&
+          (user.email === data.loginId ||
+            user.generatedUsername === data.logInId) &&
           user.password === data.password
       );
       if (matchedUser) {
@@ -132,7 +135,7 @@ const SignUp = () => {
           {mode === "login" && (
             <>
               <h1 className="font-bold text-white mb-2">
-                Log in into your account
+                Log in
               </h1>
               <input
                 type="text"
@@ -174,6 +177,16 @@ const SignUp = () => {
             {" "}
             {errors.password && <span>{errors.password.message}</span>}
           </div>
+
+          {mode === "login" && (
+            <div className="flex justify-between mb-4 text-sm align-center">
+              <span className="flex align-center">
+                <input type="checkbox" name="" id="" className="mr-[5px]" />
+                Remember me
+              </span>
+              <span>Forgot password?</span>
+            </div>
+          )}
 
           <button
             type="submit"
